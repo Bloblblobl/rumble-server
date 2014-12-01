@@ -1,5 +1,14 @@
 from rumble_server.user import User
 
+instance = None
+
+
+def get_instance():
+    global instance
+    if instance is None:
+        instance = Server()
+    return instance
+
 
 class Server(object):
     def __init__(self):
