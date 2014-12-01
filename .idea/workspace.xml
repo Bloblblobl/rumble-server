@@ -10,7 +10,6 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
     </list>
     <ignored path="Rumble-Server.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -576,7 +575,8 @@
     </option>
     <MESSAGE value="Updated README" />
     <MESSAGE value="All the Flask-restful boilerplate code is in place. &#10;The /register endpoint works.&#10;The test works&#10;&#10;&#10;&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="All the Flask-restful boilerplate code is in place. &#10;The /register endpoint works.&#10;The test works&#10;&#10;&#10;&#10;" />
+    <MESSAGE value="Add .idea PyCharm project files to .gitignore + Remove current commited .idea." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add .idea PyCharm project files to .gitignore + Remove current commited .idea." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
