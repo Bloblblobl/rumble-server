@@ -9,7 +9,7 @@ import urllib
 class ServerTest(TestCase):
     @classmethod
     def setUpClass(cls):
-        
+        app = create_app()
         cls.test_app = app.test_client()
 
     def tearDown(self):
@@ -22,14 +22,6 @@ class ServerTest(TestCase):
 
         response = self.test_app.post('/register', data=post_data)
         self.assertEqual(200, response.status_code)
-        self.assertTrue('OK', response.content)
-    #
-    # query_params = dict(modalities='temperature',
-    # start_time=str(self.start),
-    #                     end_time=str(self.start + PERIOD))
-    # url = '/v1/query?' + urllib.urlencode(query_params)
-    # response = self.test_app.get(url)
-    # result = json.loads(response.data)
-    # self.assertEqual(1, len(result))
-    # temperature_data = self._get_data(result, 'temperature')
-    # self.assertEqual(self.expected_temperature, temperature_data)
+        result = json.loads(response.data)['result']
+        self.assertTrue('OK', result)
+
