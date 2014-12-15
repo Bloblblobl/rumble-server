@@ -1,4 +1,5 @@
 import uuid
+from flask.ext.restful import abort
 from rumble_server.user import User
 
 instance = None
@@ -47,12 +48,6 @@ class Server(object):
         """
         pass
 
-    def handle_message(self, message):
-        """
-        :return:
-        """
-        pass
-
     def register(self, username, password, handle):
         """
 
@@ -61,11 +56,13 @@ class Server(object):
         :param handle:
         :return:
         """
-        for u in self.users:
-            if u == username:
-                raise ServerError('Username {} is already taken'.format(username), 400)
-            if u.handle == handle:
-                raise ServerError('Handle {} is already taken'.format(handle), 400)
+        for name, user in self.users.iteritems():
+            if name == username:
+                message = 'Username {} is already taken'.format(username)
+                abort(400, message=message)
+            if user.handle == handle:
+                message = 'Handle {} is already taken'.format(handle)
+                abort(400, message=message)
         new_user = User(username, password, handle, True)
         self.users[username] = new_user
 
@@ -78,12 +75,17 @@ class Server(object):
         """
         target_user = self.users.get(username, None)
         if target_user is None or password != target_user.password:
-            raise ServerError('Invalid username or password', 400)
+            abort(400, message='Invalid username or password')
 
         user_id = uuid.uuid4().hex
         self.logged_in_users[user_id] = target_user
         return user_id
 
+    def handle_message(self, user_id, message):
+        """
+        :return:
+        """
+        pass
 
 
 

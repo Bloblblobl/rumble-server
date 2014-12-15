@@ -14,6 +14,7 @@ class User(Resource):
         server.register(**args)
         return dict(result='OK')
 
+
 class LoggedInUser(Resource):
     def post(self):
         parser = RequestParser()
