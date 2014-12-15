@@ -1,17 +1,7 @@
 import os
-
 from flask import Flask
 from flask_restful import Api
-
 from rumble_server.resources import User, LoggedInUser
-
-
-class RumbleApi(Api):
-    def handle_error(self, e):
-        code = getattr(e, 'code', 500)
-        if code == 500:
-            return self.make_response({'messasge': 'something went wrong'}, 500)
-        return super(RumbleApi, self).handle_error(e)  # For non 500 errors
 
 
 def create_app():
@@ -20,8 +10,7 @@ def create_app():
 
     resource_map = (
         (User, '/register'),
-        (LoggedInUser, '/login')
-
+        (LoggedInUser, '/login'),
     )
 
     for resource, route in resource_map:
@@ -35,5 +24,5 @@ if __name__ == "__main__":
     host = '0.0.0.0'
     port = int(os.environ.get("PORT", 5000))
     app = create_app()
-    # app.run(debug=opts.debug, port=opts.port, host=opts.host)
+    #app.run(debug=opts.debug, port=opts.port, host=opts.host)
     app.run(host=host, port=port)
