@@ -1,12 +1,14 @@
 import json
+import os
 from unittest import TestCase
+
 import uuid
 import unittest
 
 from mock import Mock
 from rumble_server import server
-
 from rumble_server.api import create_app
+import urllib
 
 
 class ServerTest(TestCase):
@@ -18,6 +20,7 @@ class ServerTest(TestCase):
 
     def tearDown(self):
         pass
+
 
     def _register_test_user(self, username='Saar_Sayfan', handle='Saar'):
         post_data = dict(username=username,

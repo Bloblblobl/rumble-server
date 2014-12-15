@@ -1,3 +1,4 @@
+
 import uuid
 from flask.ext.restful import abort
 from rumble_server.user import User
@@ -10,12 +11,6 @@ def get_instance():
     if instance is None:
         instance = Server()
     return instance
-
-
-class ServerError(Exception):
-    def __init__(self, message, status_code):
-        self.message = message
-        self.status_code = status_code
 
 
 class Server(object):
@@ -50,10 +45,6 @@ class Server(object):
 
     def register(self, username, password, handle):
         """
-
-        :param username:
-        :param password:
-        :param handle:
         :return:
         """
         for name, user in self.users.iteritems():
@@ -86,6 +77,3 @@ class Server(object):
         :return:
         """
         pass
-
-
-
