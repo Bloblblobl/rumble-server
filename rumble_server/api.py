@@ -1,6 +1,5 @@
-import json
 import os
-from flask import Flask, request
+from flask import Flask
 from flask_restful import Api
 from rumble_server.resources import User, LoggedInUser
 
