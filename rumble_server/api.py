@@ -2,7 +2,7 @@ import json
 import os
 from flask import Flask, request
 from flask_restful import Api
-from rumble_server.resources import User
+from rumble_server.resources import User, LoggedInUser
 
 
 def create_app():
@@ -11,6 +11,7 @@ def create_app():
 
     resource_map = (
         (User, '/register'),
+        (LoggedInUser, '/login'),
     )
 
     for resource, route in resource_map:

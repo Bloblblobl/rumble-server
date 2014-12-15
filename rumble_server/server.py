@@ -1,3 +1,6 @@
+
+import uuid
+from flask.ext.restful import abort
 from rumble_server.user import User
 
 instance = None
@@ -13,7 +16,8 @@ def get_instance():
 class Server(object):
     def __init__(self):
         self.rooms = {}
-        self.users = []
+        self.users = {}
+        self.logged_in_users = {}
 
     def _load_all_rooms(self):
         """
@@ -39,20 +43,37 @@ class Server(object):
         """
         pass
 
-    def handle_message(self, message):
-        """
-        :return:
-        """
-        pass
-
     def register(self, username, password, handle):
         """
         :return:
         """
-        for u in self.users:
-            if u.username == username:
-                raise Exception('Username {} is already taken'.format(username))
-            if u.handle == handle:
-                raise Exception('Handle {} is already taken'.format(handle))
+        for name, user in self.users.iteritems():
+            if name == username:
+                message = 'Username {} is already taken'.format(username)
+                abort(400, message=message)
+            if user.handle == handle:
+                message = 'Handle {} is already taken'.format(handle)
+                abort(400, message=message)
         new_user = User(username, password, handle, True)
-        self.users.append(new_user)
+        self.users[username] = new_user
+
+    def login(self, username, password):
+        """
+
+        :param username:
+        :param password:
+        :return:
+        """
+        target_user = self.users.get(username, None)
+        if target_user is None or password != target_user.password:
+            abort(400, message='Invalid username or password')
+
+        user_id = uuid.uuid4().hex
+        self.logged_in_users[user_id] = target_user
+        return user_id
+
+    def handle_message(self, user_id, message):
+        """
+        :return:
+        """
+        pass
