@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from flask_restful import Api
-from rumble_server.resources import User, LoggedInUser
+from rumble_server.resources import User, LoggedInUser, RoomMember, RoomMembers, Room, Rooms
 
 
 def create_app():
@@ -11,6 +11,10 @@ def create_app():
     resource_map = (
         (User, '/register'),
         (LoggedInUser, '/login'),
+        (RoomMember, '/room_member'),
+        (RoomMembers, '/room_members'),
+        (Room, '/room'),
+        (Rooms, '/rooms')
     )
 
     for resource, route in resource_map:

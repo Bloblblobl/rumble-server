@@ -1,14 +1,11 @@
 import json
-import os
 from unittest import TestCase
-
 import uuid
-import unittest
 
 from mock import Mock
+
 from rumble_server import server
 from rumble_server.api import create_app
-import urllib
 
 
 class ServerTest(TestCase):
@@ -22,12 +19,22 @@ class ServerTest(TestCase):
         pass
 
 
-    def _register_test_user(self, username='Saar_Sayfan', handle='Saar'):
+    def _register_test_user(self, username='Saar_Sayfan', password='passwurd', handle='Saar'):
         post_data = dict(username=username,
-                         password='passwurd',
+                         password=password,
                          handle=handle)
 
         return self.test_app.post('/register', data=post_data)
+
+    def _login_test_user(self, username='Saar_Sayfan', password='passwurd', handle='Saar'):
+        self._register_test_user(username, password, handle)
+
+        post_data = dict(username=username,
+                         password=password)
+
+        response = self.test_app.post('/login', data=post_data)
+        user_id = json.loads(response.data)['user_id']
+        return user_id
 
     def test_register_success(self):
         response = self._register_test_user()
@@ -83,3 +90,60 @@ class ServerTest(TestCase):
         finally:
             uuid.uuid4 = uuid4_orig
 
+    def test_create_room_success(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+
+    def test_create_room_already_exists(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(400, response.status_code)
+
+    def test_create_room_unauthorized_user(self):
+        post_data = dict(user_id='THIS IS A SHAM',
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(401, response.status_code)
+
+    # def test_destroy_room_success(self):
+    #     user_id = self._login_test_user()
+    #
+    #     post_data = dict(user_id=user_id,
+    #                      name='room0')
+    #
+    #     response = self.test_app.post('/room', data=post_data)
+    #     self.assertEqual(200, response.status_code)
+    #
+    #     response = self.test_app.delete('/room', data=post_data)
+    #     self.assertEqual(200, response.status_code)
+    #
+    #
+    # def test_destroy_room_does_not_exist(self):
+    #     user_id = self._login_test_user()
+    #
+    #     post_data = dict(user_id=user_id,
+    #                      name='room0')
+    #
+    #     response = self.test_app.delete('/room', data=post_data)
+    #     self.assertEqual(404, response.status_code)
+    #
+    # def test_destroy_room_unauthorized_user(self):
+    #     post_data = dict(user_id='THIS IS A SHAM',
+    #                      name='room0')
+    #
+    #     response = self.test_app.delete('/room', data=post_data)
+    #     self.assertEqual(401, response.status_code)

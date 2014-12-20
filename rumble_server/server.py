@@ -1,6 +1,7 @@
 
 import uuid
-from flask.ext.restful import abort
+from flask_restful import abort
+from rumble_server.room import Room
 from rumble_server.user import User
 
 instance = None
@@ -77,3 +78,46 @@ class Server(object):
         :return:
         """
         pass
+
+    def create_room(self, user_id, name):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name in self.rooms:
+            abort(400, message='A room with this name already exists')
+        room = Room(name, {}, {})
+        self.rooms[name] = room
+
+    def destroy_room(self, user_id, name):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        del self.rooms[name]
+
+    def join_room(self, user_id, name):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        self.rooms[name].add_member(user_id, self.logged_in_users[user_id])
+
+    def leave_room(self, user_id, name):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        self.rooms[name].remove_member(user_id)
+
+    def get_rooms(self, user_id):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        return self.rooms.keys()
+
+    def get_room_members(self, user_id, name):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        members = self.rooms[name].members.values()
+        return [m.name for m in members]
+
