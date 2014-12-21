@@ -119,6 +119,166 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room', data=post_data)
         self.assertEqual(401, response.status_code)
 
+    def test_join_room_success(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+    def test_join_room_already_joined(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(400, response.status_code)
+
+    def test_join_room_no_such_room(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(404, response.status_code)
+
+    def test_join_room_unauthorized_user(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id='NO SUCH USER',
+                         name='room0')
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(401, response.status_code)
+
+    def test_get_rooms_no_rooms(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id)
+
+        response = self.test_app.post('/rooms', data=post_data)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual([], result)
+
+    def test_get_rooms_one_room(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id=user_id)
+
+        response = self.test_app.post('/rooms', data=post_data)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual(['room0'], result)
+
+    def test_get_rooms_multiple_rooms(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id=user_id,
+                         name='room1')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id=user_id)
+
+        response = self.test_app.post('/rooms', data=post_data)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual(['room0', 'room1'], result)
+
+    def test_get_room_members_no_member(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_members', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        result = json.loads(response.data)['result']
+        self.assertEqual([], result)
+
+    def test_get_room_members_one_member(self):
+        user_id = self._login_test_user()
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_members', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        result = json.loads(response.data)['result']
+        self.assertEqual(['Saar'], result)
+
+    def test_get_room_members_multiple_members(self):
+        user_id = self._login_test_user()
+        user_id2 = self._login_test_user('Guy_Sayfan', 'passwird', 'Guy')
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room', data=post_data)
+        self.assertEqual(200, response.status_code)
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id=user_id2,
+                         name='room0')
+
+        response = self.test_app.post('/room_member', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(user_id=user_id,
+                         name='room0')
+
+        response = self.test_app.post('/room_members', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        result = set(json.loads(response.data)['result'])
+        expected = {'Saar', 'Guy'}
+        self.assertEqual(expected, result)
+
+
     # def test_destroy_room_success(self):
     #     user_id = self._login_test_user()
     #

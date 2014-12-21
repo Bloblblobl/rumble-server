@@ -119,5 +119,5 @@ class Server(object):
         if name not in self.rooms:
             abort(404, message='Room not found')
         members = self.rooms[name].members.values()
-        return [m.name for m in members]
+        return [m.handle for m in members]
 

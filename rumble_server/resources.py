@@ -43,13 +43,14 @@ class RoomMember(Resource):
         server.leave_room(**args)
 
 class RoomMembers(Resource):
-    def get(self):
+    def post(self):
         parser = RequestParser()
         parser.add_argument('user_id', type=str, required=True)
         parser.add_argument('name', type=str, required=True)
         args = parser.parse_args()
         server = get_instance()
-        server.get_room_members(**args)
+        return dict(result=server.get_room_members(**args))
+
 
 class Room(Resource):
     def post(self):
@@ -69,12 +70,12 @@ class Room(Resource):
         server.destroy_room(**args)
 
 class Rooms(Resource):
-    def get(self):
+    def post(self):
         parser = RequestParser()
         parser.add_argument('user_id', type=str, required=True)
         args = parser.parse_args()
         server = get_instance()
-        server.get_rooms(**args)
+        return dict(result=server.get_rooms(**args))
 
 
 
