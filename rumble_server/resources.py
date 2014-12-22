@@ -1,3 +1,4 @@
+from flask import request
 from flask_restful import Resource
 from flask_restful.reqparse import RequestParser
 from server import get_instance
@@ -25,57 +26,46 @@ class LoggedInUser(Resource):
         user_id = server.login(**args)
         return dict(user_id=user_id)
 
+
 class RoomMember(Resource):
     def post(self):
         parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
         parser.add_argument('name', type=str, required=True)
         args = parser.parse_args()
         server = get_instance()
+        args['user_id'] = request.headers['Authorization']
         server.join_room(**args)
 
-    def delete(self):
-        parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
-        parser.add_argument('name', type=str, required=True)
-        args = parser.parse_args()
+    def delete(self, name):
+        user_id = request.headers['Authorization']
         server = get_instance()
-        server.leave_room(**args)
+        server.leave_room(user_id=user_id, name=name)
+
 
 class RoomMembers(Resource):
-    def post(self):
-        parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
-        parser.add_argument('name', type=str, required=True)
-        args = parser.parse_args()
+    def get(self, name):
+        user_id = request.headers['Authorization']
         server = get_instance()
-        return dict(result=server.get_room_members(**args))
+        result = server.get_room_members(user_id=user_id, name=name)
+        return dict(result=result)
 
 
 class Room(Resource):
-    def post(self):
-        parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
-        parser.add_argument('name', type=str, required=True)
-        args = parser.parse_args()
+    def post(self, name):
+        user_id = request.headers['Authorization']
         server = get_instance()
-        server.create_room(**args)
+        server.create_room(user_id=user_id, name=name)
 
-    def delete(self):
-        parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
-        parser.add_argument('name', type=str, required=True)
-        args = parser.parse_args()
+    def delete(self, name):
+        user_id = request.headers['Authorization']
         server = get_instance()
-        server.destroy_room(**args)
+        server.destroy_room(user_id=user_id, name=name)
 
 class Rooms(Resource):
-    def post(self):
-        parser = RequestParser()
-        parser.add_argument('user_id', type=str, required=True)
-        args = parser.parse_args()
+    def get(self):
+        user_id = request.headers['Authorization']
         server = get_instance()
-        return dict(result=server.get_rooms(**args))
+        return dict(result=server.get_rooms(user_id=user_id))
 
 
 

@@ -12,8 +12,8 @@ def create_app():
         (User, '/register'),
         (LoggedInUser, '/login'),
         (RoomMember, '/room_member'),
-        (RoomMembers, '/room_members'),
-        (Room, '/room'),
+        (RoomMembers, '/room_members/<name>'),
+        (Room, '/room/<name>'),
         (Rooms, '/rooms')
     )
 
