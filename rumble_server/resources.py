@@ -67,6 +67,21 @@ class Rooms(Resource):
         server = get_instance()
         return dict(result=server.get_rooms(user_id=user_id))
 
+class Message(Resource):
+    def post(self, name):
+        user_id = request.headers['Authorization']
+        parser = RequestParser()
+        parser.add_argument('message', type=str, required=True)
+        message = parser.parse_args()['message']
+        server = get_instance()
+        server.handle_message(user_id, name, message)
+
+class Messages(Resource):
+    def get(self, name, start, end):
+        user_id = request.headers['Authorization']
+        server = get_instance()
+        return dict(result=server.get_messages(user_id, name, start, end))
+
 
 
 

@@ -1,5 +1,6 @@
 
 import uuid
+import datetime
 from flask_restful import abort
 from rumble_server.room import Room
 from rumble_server.user import User
@@ -73,11 +74,33 @@ class Server(object):
         self.logged_in_users[user_id] = target_user
         return user_id
 
-    def handle_message(self, user_id, message):
+    def handle_message(self, user_id, name, message):
         """
         :return:
         """
-        pass
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        room = self.rooms[name]
+        if user_id not in room.members:
+            abort(401, message='Only members can send messages')
+
+        username = self.logged_in_users[user_id].username
+        timestamp = str(datetime.datetime.utcnow())
+
+        room.messages[timestamp] = (username, message)
+
+    def get_messages(self, user_id, name, start=None, end=None):
+        if user_id not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        if name not in self.rooms:
+            abort(404, message='Room not found')
+        room = self.rooms[name]
+        if user_id not in room.members:
+            abort(401, message='Only members can receive messages')
+
+        return {k:v for k, v in room.messages.iteritems() if start <= k < end}
 
     def create_room(self, user_id, name):
         if user_id not in self.logged_in_users:
