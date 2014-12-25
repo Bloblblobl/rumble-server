@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+import time
 import json
 from unittest import TestCase
 import uuid
@@ -317,7 +319,6 @@ class ServerTest(TestCase):
         
     def test_get_messages_unauthorized_user(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0', message='message')
 
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
@@ -334,7 +335,6 @@ class ServerTest(TestCase):
 
     def test_get_messages_not_member(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0', message='message')
 
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
@@ -342,72 +342,98 @@ class ServerTest(TestCase):
         response = self.test_app.get('/messages/room0/start/end', headers=auth)
         self.assertEqual(401, response.status_code)
 
-    # ========================================================
+    def test_get_messages_no_messages(self):
+        auth = self._login_test_user()
 
-    # def test_get_messages_no_messages(self):
-    #     auth = self._login_test_user()
-    #     response = self.test_app.post('/room/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     response = self.test_app.post('/room/room1', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     response = self.test_app.get('/rooms', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #     result = json.loads(response.data)['result']
-    #     self.assertEqual(['room0', 'room1'], result)
-    #
-    # def test_get_room_members_no_member(self):
-    #     auth = self._login_test_user()
-    #     response = self.test_app.post('/room/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     response = self.test_app.get('/room_members/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     result = json.loads(response.data)['result']
-    #     self.assertEqual([], result)
-    #
-    # def test_get_room_members_one_member(self):
-    #     auth = self._login_test_user()
-    #     post_data = dict(name='room0')
-    #     response = self.test_app.post('/room/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #     response = self.test_app.post('/room_member',
-    #                                   data=post_data,
-    #                                   headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     response = self.test_app.get('/room_members/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     result = json.loads(response.data)['result']
-    #     self.assertEqual(['Saar'], result)
-    #
-    # def test_get_room_members_multiple_members(self):
-    #     auth = self._login_test_user()
-    #     auth2 = self._login_test_user('Guy_Sayfan', 'passwird', 'Guy')
-    #
-    #     response = self.test_app.post('/room/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     post_data = dict(name='room0')
-    #     response = self.test_app.post('/room_member',
-    #                                   data=post_data,
-    #                                   headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #     response = self.test_app.post('/room_member',
-    #                                   data=post_data,
-    #                                   headers=auth2)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     response = self.test_app.get('/room_members/room0', headers=auth)
-    #     self.assertEqual(200, response.status_code)
-    #
-    #     result = set(json.loads(response.data)['result'])
-    #     expected = {'Saar', 'Guy'}
-    #     self.assertEqual(expected, result)
+        response = self.test_app.post('/room/room0', headers=auth)
+        self.assertEqual(200, response.status_code)
 
+        post_data = dict(name='room0')
+        response = self.test_app.post('/room_member',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+        start = '2014-12-24T00:00:00'
+        end = '2014-12-25T00:00:00'
+
+        response = self.test_app.get('/messages/room0/{}/{}'.format(start, end), headers=auth)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual({}, result)
+
+    def test_get_messages_one_message(self):
+        auth = self._login_test_user()
+
+        response = self.test_app.post('/room/room0', headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(name='room0')
+        response = self.test_app.post('/room_member',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+        start = datetime.now().replace(microsecond=0)
+        end = start + timedelta(days=1)
+
+        start = start.isoformat()
+        end = end.isoformat()
+
+        post_data = dict(message='TEST MESSAGE')
+        response = self.test_app.post('/message/room0',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.get('/messages/room0/{}/{}'.format(start, end), headers=auth)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual('TEST MESSAGE', result.values()[0][1])
+
+    def test_get_room_members_multiple_messages(self):
+        auth = self._login_test_user()
+
+        response = self.test_app.post('/room/room0', headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(name='room0')
+        response = self.test_app.post('/room_member',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+        start = datetime.utcnow().replace(microsecond=0)
+
+        # send 3 messages 1 second apart
+        for i in range(3):
+            post_data = dict(message='TEST MESSAGE {}'.format(i))
+            response = self.test_app.post('/message/room0',
+                                          data=post_data,
+                                          headers=auth)
+            self.assertEqual(200, response.status_code)
+            time.sleep(1)
+
+        # no messages in range
+        end = start
+        response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual({}, result)
+
+        # 1 message in range
+        end = start + timedelta(seconds=1)
+        response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        self.assertEqual('TEST MESSAGE 0', result.values()[0][1])
+
+        # all messages in range
+        end = start + timedelta(seconds=4)
+        response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
+        self.assertEqual(200, response.status_code)
+        result = json.loads(response.data)['result']
+        values = sorted(result.values())
+        self.assertEqual('TEST MESSAGE 0', values[0][1])
+        self.assertEqual('TEST MESSAGE 1', values[1][1])
+        self.assertEqual('TEST MESSAGE 2', values[2][1])
 
 
 

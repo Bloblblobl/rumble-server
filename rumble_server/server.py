@@ -1,6 +1,7 @@
 
 import uuid
 import datetime
+import dateutil.parser
 from flask_restful import abort
 from rumble_server.room import Room
 from rumble_server.user import User
@@ -87,7 +88,7 @@ class Server(object):
             abort(401, message='Only members can send messages')
 
         username = self.logged_in_users[user_id].username
-        timestamp = str(datetime.datetime.utcnow())
+        timestamp = datetime.datetime.utcnow().replace(microsecond=0)
 
         room.messages[timestamp] = (username, message)
 
@@ -100,7 +101,10 @@ class Server(object):
         if user_id not in room.members:
             abort(401, message='Only members can receive messages')
 
-        return {k:v for k, v in room.messages.iteritems() if start <= k < end}
+        start = dateutil.parser.parse(start)
+        end = dateutil.parser.parse(end)
+
+        return {k: v for k, v in room.messages.iteritems() if start <= k < end}
 
     def create_room(self, user_id, name):
         if user_id not in self.logged_in_users:
