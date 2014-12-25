@@ -90,10 +90,10 @@ class Server(object):
         if user_id not in room.members:
             abort(401, message='Only members can send messages')
 
-        username = self.logged_in_users[user_id].username
+        handle = self.logged_in_users[user_id].handle
         timestamp = datetime.datetime.utcnow().replace(microsecond=0)
 
-        room.messages[timestamp] = (username, message)
+        room.messages[timestamp] = (handle, message)
 
     def get_messages(self, user_id, name, start=None, end=None):
         if user_id not in self.logged_in_users:
