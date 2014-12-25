@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from flask_restful import Api
-from rumble_server.resources import User, LoggedInUser, RoomMember, RoomMembers, Room, Rooms, Message, Messages
+from resources import User, LoggedInUser, RoomMember, RoomMembers, Room, Rooms, Message, Messages
 
 
 def create_app():
@@ -24,11 +24,11 @@ def create_app():
 
     return app
 
+the_app = create_app()
 
 if __name__ == "__main__":
     print("If you run locally, browse to localhost:5000")
     host = '0.0.0.0'
     port = int(os.environ.get("PORT", 5000))
-    app = create_app()
     #app.run(debug=opts.debug, port=opts.port, host=opts.host)
-    app.run(host=host, port=port)
+    the_app.run(host=host, port=port)
