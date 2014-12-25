@@ -71,6 +71,9 @@ class Server(object):
         if target_user is None or password != target_user.password:
             abort(400, message='Invalid username or password')
 
+        if target_user in self.logged_in_users.values():
+            abort(400, message='Already logged in')
+
         user_id = uuid.uuid4().hex
         self.logged_in_users[user_id] = target_user
         return user_id

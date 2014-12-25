@@ -97,6 +97,18 @@ class ServerTest(TestCase):
         message = json.loads(response.data)['message']
         self.assertEqual('Invalid username or password', message)
 
+    def test_user_login_already_logged_in(self):
+        self._register_test_user()
+
+        post_data = dict(username='Saar_Sayfan',
+                         password='passwurd', )
+
+        response = self.test_app.post('/login', data=post_data)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/login', data=post_data)
+        self.assertEqual(400, response.status_code)
+
     def test_create_room_success(self):
         auth = self._login_test_user()
         response = self.test_app.post('/room/room0', headers=auth)
