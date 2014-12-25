@@ -3,8 +3,8 @@ import uuid
 import datetime
 import dateutil.parser
 from flask_restful import abort
-from rumble_server.room import Room
-from rumble_server.user import User
+from room import Room
+from user import User
 
 instance = None
 
