@@ -88,6 +88,14 @@ class ServerTest(TestCase):
         finally:
             uuid.uuid4 = uuid4_orig
 
+    def test_user_login_wrong_password(self):
+        self._register_test_user()
+
+        post_data = dict(username='Saar_Sayfan',
+                         password='passwird', )
+        response = self.test_app.post('/login', data=post_data)
+        self.assertEqual(400, response.status_code)
+
     def test_user_login_unregistered(self):
         post_data = dict(username='Saar_Sayfan',
                          password='passwurd', )
