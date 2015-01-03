@@ -1,4 +1,4 @@
-
+import sqlite3
 import uuid
 import datetime
 import dateutil.parser
@@ -7,7 +7,7 @@ from room import Room
 from user import User
 
 instance = None
-
+con = sqlite3.connect('rumble.db')
 
 def get_instance():
     global instance
@@ -21,6 +21,7 @@ class Server(object):
         self.rooms = {}
         self.users = {}
         self.logged_in_users = {}
+        self._load_all_users()
 
     def _load_all_rooms(self):
         """
@@ -32,19 +33,14 @@ class Server(object):
         """
         :return:
         """
-        pass
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM user")
 
-    def _save_all_rooms(self):
-        """
-        :return:
-        """
-        pass
-
-    def _save_all_users(self):
-        """
-        :return:
-        """
-        pass
+            users = cur.fetchall()
+            for u in users:
+                user = User(u[1], u[2], u[3], True)
+                self.users[u[1]] = user
 
     def register(self, username, password, handle):
         """
@@ -60,6 +56,10 @@ class Server(object):
         new_user = User(username, password, handle, True)
         self.users[username] = new_user
 
+        with con:
+            db = con.cursor()
+            db.execute("INSERT INTO user (name, password, handle) VALUES('{}', '{}', '{}')".format(username, password, handle))
+
     def login(self, username, password):
         """
 
@@ -69,7 +69,7 @@ class Server(object):
         """
         target_user = self.users.get(username, None)
         if target_user is None or password != target_user.password:
-            abort(400, message='Invalid username or password')
+            abort(401, message='Invalid username or password')
 
         if target_user in self.logged_in_users.values():
             abort(400, message='Already logged in')
@@ -116,6 +116,10 @@ class Server(object):
             abort(400, message='A room with this name already exists')
         room = Room(name, {}, {})
         self.rooms[name] = room
+
+        with con:
+            db = con.cursor()
+            db.execute("INSERT INTO room (name) VALUES('{}')".format(name))
 
     def destroy_room(self, user_id, name):
         if user_id not in self.logged_in_users:

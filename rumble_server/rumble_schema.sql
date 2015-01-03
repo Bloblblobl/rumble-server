@@ -1,24 +1,25 @@
-BEGIN TRANSACTION
+BEGIN TRANSACTION;
 
-CREATE TABLE room(
+CREATE TABLE IF NOT EXISTS room(
 id INTEGER PRIMARY KEY,
 name TEXT);
 
-CREATE TABLE user(
+CREATE TABLE IF NOT EXISTS user(
 id INTEGER PRIMARY KEY,
 name TEXT,
 password TEXT,
 handle TEXT);
 
-CREATE TABLE membership(
+CREATE TABLE IF NOT EXISTS membership(
 id INTEGER PRIMARY KEY,
 user_id references user(id),
 room_id references room(id));
 
-CREATE TABLE message(
+CREATE TABLE IF NOT EXISTS message(
 id INTEGER PRIMARY KEY,
-user_id TEXT,
+room_id references room(id),
+user_id references user(id),
 timestamp TEXT,
 message TEXT);
 
-END TRANSACTION
+END TRANSACTION;

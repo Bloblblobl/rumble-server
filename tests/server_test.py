@@ -94,14 +94,14 @@ class ServerTest(TestCase):
         post_data = dict(username='Saar_Sayfan',
                          password='passwird', )
         response = self.test_app.post('/login', data=post_data)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_user_login_unregistered(self):
         post_data = dict(username='Saar_Sayfan',
                          password='passwurd', )
 
         response = self.test_app.post('/login', data=post_data)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(401, response.status_code)
         message = json.loads(response.data)['message']
         self.assertEqual('Invalid username or password', message)
 
