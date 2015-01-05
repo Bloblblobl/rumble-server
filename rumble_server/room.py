@@ -8,12 +8,12 @@ class Room(object):
         self.members = members
         self.messages = messages
 
-    def add_member(self, user_id, user):
-        if user_id in self.members:
+    def add_member(self, user_auth, user):
+        if user_auth in self.members:
             abort(400, message='User already in the room')
-        self.members[user_id] = user
+        self.members[user_auth] = user
 
-    def remove_member(self, user_id):
-        if user_id not in self.members:
+    def remove_member(self, user_auth):
+        if user_auth not in self.members:
             abort(404, message='User not found')
-        del self.members[user_id]
+        del self.members[user_auth]

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 import time
 import json
 from unittest import TestCase
@@ -13,6 +14,11 @@ from rumble_server.api import create_app
 
 class ServerTest(TestCase):
     def setUp(self):
+        db_path = os.path.abspath('rumble.db')
+        if os.path.isfile(db_path):
+            os.remove(db_path)
+        os.system('sqlite3 {} < ../rumble_server/rumble_schema.sql'.format(db_path))
+
         # Reset singleton every time
         server.instance = None
         app = create_app()
@@ -22,7 +28,7 @@ class ServerTest(TestCase):
         self.bad_auth['Authorization'] = 'No such user'
 
     def tearDown(self):
-        pass
+        server.instance.conn.close()
 
     def _register_test_user(self, username='Saar_Sayfan', password='passwurd', handle='Saar'):
         post_data = dict(username=username,
@@ -38,9 +44,9 @@ class ServerTest(TestCase):
                          password=password)
 
         response = self.test_app.post('/login', data=post_data)
-        user_id = json.loads(response.data)['user_id']
+        user_auth = json.loads(response.data)['user_auth']
         headers = Headers()
-        headers['Authorization'] = user_id
+        headers['Authorization'] = user_auth
         return headers
 
     def test_register_success(self):
@@ -83,8 +89,8 @@ class ServerTest(TestCase):
             uuid.uuid4 = lambda: m
             response = self.test_app.post('/login', data=post_data)
             self.assertEqual(200, response.status_code)
-            user_id = json.loads(response.data)['user_id']
-            self.assertTrue('12345', user_id)
+            user_auth = json.loads(response.data)['user_auth']
+            self.assertTrue('12345', user_auth)
         finally:
             uuid.uuid4 = uuid4_orig
 

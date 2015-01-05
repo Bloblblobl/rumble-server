@@ -7,7 +7,7 @@ from room import Room
 from user import User
 
 instance = None
-con = sqlite3.connect('rumble.db')
+
 
 def get_instance():
     global instance
@@ -18,6 +18,7 @@ def get_instance():
 
 class Server(object):
     def __init__(self):
+        self.conn = sqlite3.connect('rumble.db')
         self.rooms = {}
         self.users = {}
         self.logged_in_users = {}
@@ -33,9 +34,12 @@ class Server(object):
         """
         :return:
         """
-        with con:
-            cur = con.cursor()
-            cur.execute("SELECT * FROM user")
+        with self.conn:
+            cur = self.conn.cursor()
+            try:
+                cur.execute("SELECT * FROM user")
+            except Exception as e:
+                raise
 
             users = cur.fetchall()
             for u in users:
@@ -56,8 +60,8 @@ class Server(object):
         new_user = User(username, password, handle, True)
         self.users[username] = new_user
 
-        with con:
-            db = con.cursor()
+        with self.conn:
+            db = self.conn.cursor()
             db.execute("INSERT INTO user (name, password, handle) VALUES('{}', '{}', '{}')".format(username, password, handle))
 
     def login(self, username, password):
@@ -74,34 +78,47 @@ class Server(object):
         if target_user in self.logged_in_users.values():
             abort(400, message='Already logged in')
 
-        user_id = uuid.uuid4().hex
-        self.logged_in_users[user_id] = target_user
-        return user_id
+        user_auth = uuid.uuid4().hex
+        self.logged_in_users[user_auth] = target_user
+        return user_auth
 
-    def handle_message(self, user_id, name, message):
+    def handle_message(self, user_auth, name, message):
         """
         :return:
         """
-        if user_id not in self.logged_in_users:
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
         room = self.rooms[name]
-        if user_id not in room.members:
+        if user_auth not in room.members:
             abort(401, message='Only members can send messages')
 
-        handle = self.logged_in_users[user_id].handle
+        handle = self.logged_in_users[user_auth].handle
         timestamp = datetime.datetime.utcnow().replace(microsecond=0)
 
         room.messages[timestamp] = (handle, message)
 
-    def get_messages(self, user_id, name, start=None, end=None):
-        if user_id not in self.logged_in_users:
+        with self.conn:
+            db = self.conn.cursor()
+            # Find sender's user_id in Db by user name
+            db.execute("SELECT id FROM user WHERE handle = '{}'".format(handle))
+            sender_id = db.fetchone()[0]
+            # Find room_id in Db by room name
+            db.execute("SELECT id FROM room WHERE name = '{}'".format(name))
+            room_id = db.fetchone()[0]
+            # Save message to DB
+            cmd = "INSERT INTO message (room_id, user_id, timestamp, message) VALUES({}, {}, '{}', '{}')"
+            cmd = cmd.format(room_id, sender_id, timestamp, message)
+            db.execute(cmd)
+
+    def get_messages(self, user_auth, name, start=None, end=None):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
         room = self.rooms[name]
-        if user_id not in room.members:
+        if user_auth not in room.members:
             abort(401, message='Only members can receive messages')
 
         start = dateutil.parser.parse(start)
@@ -109,46 +126,46 @@ class Server(object):
 
         return {k: v for k, v in room.messages.iteritems() if start <= k < end}
 
-    def create_room(self, user_id, name):
-        if user_id not in self.logged_in_users:
+    def create_room(self, user_auth, name):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name in self.rooms:
             abort(400, message='A room with this name already exists')
         room = Room(name, {}, {})
         self.rooms[name] = room
 
-        with con:
-            db = con.cursor()
+        with self.conn:
+            db = self.conn.cursor()
             db.execute("INSERT INTO room (name) VALUES('{}')".format(name))
 
-    def destroy_room(self, user_id, name):
-        if user_id not in self.logged_in_users:
+    def destroy_room(self, user_auth, name):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
         del self.rooms[name]
 
-    def join_room(self, user_id, name):
-        if user_id not in self.logged_in_users:
+    def join_room(self, user_auth, name):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
-        self.rooms[name].add_member(user_id, self.logged_in_users[user_id])
+        self.rooms[name].add_member(user_auth, self.logged_in_users[user_auth])
 
-    def leave_room(self, user_id, name):
-        if user_id not in self.logged_in_users:
+    def leave_room(self, user_auth, name):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
-        self.rooms[name].remove_member(user_id)
+        self.rooms[name].remove_member(user_auth)
 
-    def get_rooms(self, user_id):
-        if user_id not in self.logged_in_users:
+    def get_rooms(self, user_auth):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         return self.rooms.keys()
 
-    def get_room_members(self, user_id, name):
-        if user_id not in self.logged_in_users:
+    def get_room_members(self, user_auth, name):
+        if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')

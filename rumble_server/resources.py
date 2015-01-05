@@ -25,8 +25,8 @@ class LoggedInUser(Resource):
         parser.add_argument('password', type=str, required=True)
         args = parser.parse_args()
         server = get_instance()
-        user_id = server.login(**args)
-        return dict(user_id=user_id)
+        user_auth = server.login(**args)
+        return dict(user_auth=user_auth)
 
 
 class RoomMember(Resource):
@@ -35,54 +35,54 @@ class RoomMember(Resource):
         parser.add_argument('name', type=str, required=True)
         args = parser.parse_args()
         server = get_instance()
-        args['user_id'] = request.headers['Authorization']
+        args['user_auth'] = request.headers['Authorization']
         server.join_room(**args)
 
     def delete(self, name):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        server.leave_room(user_id=user_id, name=name)
+        server.leave_room(user_auth=user_auth, name=name)
 
 
 class RoomMembers(Resource):
     def get(self, name):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        result = server.get_room_members(user_id=user_id, name=name)
+        result = server.get_room_members(user_auth=user_auth, name=name)
         return dict(result=result)
 
 
 class Room(Resource):
     def post(self, name):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        server.create_room(user_id=user_id, name=name)
+        server.create_room(user_auth=user_auth, name=name)
 
     def delete(self, name):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        server.destroy_room(user_id=user_id, name=name)
+        server.destroy_room(user_auth=user_auth, name=name)
 
 class Rooms(Resource):
     def get(self):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        return dict(result=server.get_rooms(user_id=user_id))
+        return dict(result=server.get_rooms(user_auth=user_auth))
 
 class Message(Resource):
     def post(self, name):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         parser = RequestParser()
         parser.add_argument('message', type=str, required=True)
         message = parser.parse_args()['message']
         server = get_instance()
-        server.handle_message(user_id, name, message)
+        server.handle_message(user_auth, name, message)
 
 class Messages(Resource):
     def get(self, name, start, end):
-        user_id = request.headers['Authorization']
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        result = server.get_messages(user_id, name, start, end)
+        result = server.get_messages(user_auth, name, start, end)
         result = {k.isoformat(): v for k,v in result.iteritems()}
         return dict(result=result)
 
