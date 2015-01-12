@@ -22,10 +22,12 @@ class ServerTest(TestCase):
         # Reset singleton every time
         server.instance = None
         app = create_app()
+        self.conn = server.get_instance().conn
         self.test_app = app.test_client()
 
         self.bad_auth = Headers()
         self.bad_auth['Authorization'] = 'No such user'
+
 
     def tearDown(self):
         server.instance.conn.close()
@@ -34,7 +36,6 @@ class ServerTest(TestCase):
         post_data = dict(username=username,
                          password=password,
                          handle=handle)
-
         return self.test_app.post('/register', data=post_data)
 
     def _login_test_user(self, username='Saar_Sayfan', password='passwurd', handle='Saar'):
@@ -50,10 +51,24 @@ class ServerTest(TestCase):
         return headers
 
     def test_register_success(self):
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM user")
+            users = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, users)
+
         response = self._register_test_user()
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
         self.assertEqual('OK', result)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM user")
+            users = cur.fetchall()
+            expected = [(1, 'Saar_Sayfan', 'passwurd', 'Saar')]
+            self.assertEqual(expected, users)
 
     def test_register_username_exists(self):
         # Register once
@@ -65,6 +80,13 @@ class ServerTest(TestCase):
         message = json.loads(response.data)['message']
         self.assertEqual('Username Saar_Sayfan is already taken', message)
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM user")
+            users = cur.fetchall()
+            expected = [(1, 'Saar_Sayfan', 'passwurd', 'Saar')]
+            self.assertEqual(expected, users)
+
     def test_register_handle_exists(self):
         # Register once
         self._register_test_user()
@@ -74,6 +96,13 @@ class ServerTest(TestCase):
         self.assertEqual(400, response.status_code)
         message = json.loads(response.data)['message']
         self.assertEqual('Handle Saar is already taken', message)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM user")
+            users = cur.fetchall()
+            expected = [(1, 'Saar_Sayfan', 'passwurd', 'Saar')]
+            self.assertEqual(expected, users)
 
     def test_user_login_success(self):
         self._register_test_user()
@@ -124,9 +153,23 @@ class ServerTest(TestCase):
         self.assertEqual(400, response.status_code)
 
     def test_create_room_success(self):
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, rooms)
+
         auth = self._login_test_user()
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = [(1, 'room0')]
+            self.assertEqual(expected, rooms)
 
     def test_create_room_already_exists(self):
         auth = self._login_test_user()
@@ -134,12 +177,33 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = [(1, 'room0')]
+            self.assertEqual(expected, rooms)
+
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(400, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = [(1, 'room0')]
+            self.assertEqual(expected, rooms)
 
     def test_create_room_unauthorized_user(self):
         response = self.test_app.post('/room/room0', headers=self.bad_auth)
         self.assertEqual(401, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, rooms)
 
     def test_join_room_success(self):
         auth = self._login_test_user()
@@ -278,10 +342,24 @@ class ServerTest(TestCase):
         response = self.test_app.delete('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, rooms)
+
     def test_destroy_room_does_not_exist(self):
         auth = self._login_test_user()
         response = self.test_app.delete('/room/room0', headers=auth)
         self.assertEqual(404, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, rooms)
 
     def test_destroy_room_unauthorized_user(self):
         auth = self._login_test_user()
@@ -305,10 +383,24 @@ class ServerTest(TestCase):
 
         post_data = dict(name='room0', message='message')
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, messages)
+
         response = self.test_app.post('/message/room0',
                                       data=post_data,
                                       headers=auth)
         self.assertEqual(200, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = [(1, 1, 'message')]
+            self.assertEqual(expected, messages)
 
     def test_handle_message_unauthorized_user(self):
         auth = self._login_test_user()
@@ -322,6 +414,13 @@ class ServerTest(TestCase):
                                       headers=self.bad_auth)
         self.assertEqual(401, response.status_code)
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, messages)
+
     def test_handle_message_room_does_not_exist(self):
         auth = self._login_test_user()
         post_data = dict(name='room0', message='message')
@@ -330,6 +429,13 @@ class ServerTest(TestCase):
                                       data=post_data,
                                       headers=auth)
         self.assertEqual(404, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, messages)
 
     def test_handle_message_not_member(self):
         auth = self._login_test_user()
@@ -342,6 +448,13 @@ class ServerTest(TestCase):
                                       data=post_data,
                                       headers=auth)
         self.assertEqual(401, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, messages)
         
     def test_get_messages_unauthorized_user(self):
         auth = self._login_test_user()

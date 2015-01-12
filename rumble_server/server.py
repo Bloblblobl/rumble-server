@@ -145,6 +145,10 @@ class Server(object):
             abort(404, message='Room not found')
         del self.rooms[name]
 
+        with self.conn:
+            db = self.conn.cursor()
+            db.execute("DELETE FROM room WHERE name = '{}'".format(name))
+
     def join_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
