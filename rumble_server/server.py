@@ -12,6 +12,7 @@ script_dir = os.path.dirname(__file__)
 db_file = os.path.join(os.path.join(script_dir, 'rumble.db'))
 schema_file = os.path.join(os.path.join(script_dir, 'rumble_schema.sql'))
 
+
 def get_instance():
     global instance
     if instance is None:
