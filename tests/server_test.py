@@ -14,12 +14,15 @@ from rumble_server.api import create_app
 
 class ServerTest(TestCase):
     def setUp(self):
-        db_path = os.path.abspath('rumble.db')
-        if os.path.isfile(db_path):
-            os.remove(db_path)
-        os.system('sqlite3 {} < ../rumble_server/rumble_schema.sql'.format(db_path))
+        db_file = os.path.abspath('rumble.db')
+        if os.path.isfile(db_file):
+            os.remove(db_file)
+        cmd = 'sqlite3 {} < ../rumble_server/rumble_schema.sql'
+        cmd = cmd.format(db_file)
+        os.system(cmd)
 
         # Reset singleton every time
+        server.db_file = db_file
         server.instance = None
         app = create_app()
         self.conn = server.get_instance().conn
@@ -455,7 +458,7 @@ class ServerTest(TestCase):
             messages = cur.fetchall()
             expected = []
             self.assertEqual(expected, messages)
-        
+
     def test_get_messages_unauthorized_user(self):
         auth = self._login_test_user()
 

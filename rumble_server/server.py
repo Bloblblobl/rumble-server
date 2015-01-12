@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import uuid
 import datetime
@@ -7,7 +8,9 @@ from room import Room
 from user import User
 
 instance = None
-
+script_dir = os.path.dirname(__file__)
+db_file = os.path.join(os.path.join(script_dir, 'rumble.db'))
+schema_file = os.path.join(os.path.join(script_dir, 'rumble_schema.sql'))
 
 def get_instance():
     global instance
@@ -18,7 +21,7 @@ def get_instance():
 
 class Server(object):
     def __init__(self):
-        self.conn = sqlite3.connect('rumble.db')
+        self.conn = sqlite3.connect(db_file)
         self.rooms = {}
         self.users = {}
         self.logged_in_users = {}
@@ -36,11 +39,7 @@ class Server(object):
         """
         with self.conn:
             cur = self.conn.cursor()
-            try:
-                cur.execute("SELECT * FROM user")
-            except Exception as e:
-                raise
-
+            cur.execute("SELECT * FROM user")
             users = cur.fetchall()
             for u in users:
                 user = User(u[1], u[2], u[3], True)
