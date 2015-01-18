@@ -147,7 +147,11 @@ class Server(object):
 
         with self.conn:
             db = self.conn.cursor()
+            db.execute("SELECT id FROM room WHERE name = '{}'".format(name))
+            id = db.fetchone()[0]
+            db.execute("DELETE FROM message WHERE room_id = {}".format(id))
             db.execute("DELETE FROM room WHERE name = '{}'".format(name))
+
 
     def join_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:

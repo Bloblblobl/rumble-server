@@ -352,6 +352,48 @@ class ServerTest(TestCase):
             expected = []
             self.assertEqual(expected, rooms)
 
+    def test_destroy_room_with_messages_success(self):
+        auth = self._login_test_user()
+        post_data = dict(name='room0')
+        response = self.test_app.post('/room/room0', headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        response = self.test_app.post('/room_member',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        post_data = dict(name='room0', message='message')
+
+        response = self.test_app.post('/message/room0',
+                                      data=post_data,
+                                      headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = [(1, 1, 'message')]
+            self.assertEqual(expected, messages)
+
+        response = self.test_app.delete('/room/room0', headers=auth)
+        self.assertEqual(200, response.status_code)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, rooms)
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+            expected = []
+            self.assertEqual(expected, messages)
+
     def test_destroy_room_does_not_exist(self):
         auth = self._login_test_user()
         response = self.test_app.delete('/room/room0', headers=auth)
