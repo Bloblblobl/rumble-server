@@ -180,3 +180,4 @@ class Server(object):
         members = self.rooms[name].members.values()
         return [m.handle for m in members]
 
+
