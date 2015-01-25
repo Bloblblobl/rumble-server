@@ -10,6 +10,8 @@ from werkzeug.datastructures import Headers
 
 from rumble_server import server
 from rumble_server.api import create_app
+from rumble_server.room import Room
+from rumble_server.user import User
 
 
 class ServerTest(TestCase):
@@ -639,8 +641,52 @@ class ServerTest(TestCase):
         self.assertEqual('TEST MESSAGE 1', values[1][1])
         self.assertEqual('TEST MESSAGE 2', values[2][1])
 
+    def test_server_init(self):
+        s = server.get_instance()
+        auth = self._login_test_user()
 
+        for name in ('room0', 'room1'):
+            response = self.test_app.post('/room/' + name, headers=auth)
+            self.assertEqual(200, response.status_code)
 
+            post_data = dict(name=name)
+            response = self.test_app.post('/room_member',
+                                          data=post_data,
+                                          headers=auth)
+            self.assertEqual(200, response.status_code)
 
+            post_data = dict(name=name, message='message')
+            response = self.test_app.post('/message/' + name,
+                                          data=post_data,
+                                          headers=auth)
+            self.assertEqual(200, response.status_code)
 
+            post_data = dict(name=name, message='message2')
+            response = self.test_app.post('/message/' + name,
+                                          data=post_data,
+                                          headers=auth)
+            self.assertEqual(200, response.status_code)
 
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT room_id, user_id, message FROM message")
+            messages = cur.fetchall()
+        expected = [(1, 1, 'message'), 
+                    (1, 1, 'message2'), 
+                    (2, 1, 'message'), 
+                    (2, 1, 'message2')]
+        self.assertEqual(expected, messages)
+
+        server.instance = None
+
+        s = server.get_instance()
+        u = User('Saar_Sayfan', 'passwurd', 'Saar', True)
+        expected_users = [u]
+        m = (('Saar','message'),('Saar','message2'))
+        expected_rooms = {('room0', m), ('room1', m)}
+
+        self.assertEqual(expected_users, s.users.values())
+        for r in s.rooms:
+            name = r.name
+            messages = r.messages.values()
+            self.assertIn((name, messages), expected_rooms)

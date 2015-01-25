@@ -27,12 +27,21 @@ class Server(object):
         self.users = {}
         self.logged_in_users = {}
         self._load_all_users()
+        self._load_all_rooms()
 
     def _load_all_rooms(self):
         """
         :return:
         """
-        pass
+        return
+
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM room")
+            rooms = cur.fetchall()
+            for r in rooms:
+                user = User(u[1], u[2], u[3], True)
+                self.users[u[1]] = user
 
     def _load_all_users(self):
         """
