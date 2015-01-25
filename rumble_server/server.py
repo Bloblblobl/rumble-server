@@ -82,6 +82,19 @@ class Server(object):
         self.logged_in_users[user_auth] = target_user
         return user_auth
 
+    def logout(self, user_auth):
+        """
+
+        :param username:
+        :param password:
+        :return:
+        """
+
+        if user_auth not in self.logged_in_users:
+            abort(401, message='Unauthorized User')
+
+        del self.logged_in_users[user_auth]
+
     def handle_message(self, user_auth, name, message):
         """
         :return:
@@ -151,7 +164,6 @@ class Server(object):
             id = db.fetchone()[0]
             db.execute("DELETE FROM message WHERE room_id = {}".format(id))
             db.execute("DELETE FROM room WHERE name = '{}'".format(name))
-
 
     def join_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:

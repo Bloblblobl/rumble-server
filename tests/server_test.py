@@ -39,7 +39,7 @@ class ServerTest(TestCase):
         post_data = dict(username=username,
                          password=password,
                          handle=handle)
-        return self.test_app.post('/register', data=post_data)
+        return self.test_app.post('/user', data=post_data)
 
     def _login_test_user(self, username='Saar_Sayfan', password='passwurd', handle='Saar'):
         self._register_test_user(username, password, handle)
@@ -47,7 +47,7 @@ class ServerTest(TestCase):
         post_data = dict(username=username,
                          password=password)
 
-        response = self.test_app.post('/login', data=post_data)
+        response = self.test_app.post('/active_user', data=post_data)
         user_auth = json.loads(response.data)['user_auth']
         headers = Headers()
         headers['Authorization'] = user_auth
@@ -119,7 +119,7 @@ class ServerTest(TestCase):
             m = Mock()
             m.hex = '12345'
             uuid.uuid4 = lambda: m
-            response = self.test_app.post('/login', data=post_data)
+            response = self.test_app.post('/active_user', data=post_data)
             self.assertEqual(200, response.status_code)
             user_auth = json.loads(response.data)['user_auth']
             self.assertTrue('12345', user_auth)
@@ -131,14 +131,14 @@ class ServerTest(TestCase):
 
         post_data = dict(username='Saar_Sayfan',
                          password='passwird', )
-        response = self.test_app.post('/login', data=post_data)
+        response = self.test_app.post('/active_user', data=post_data)
         self.assertEqual(401, response.status_code)
 
     def test_user_login_unregistered(self):
         post_data = dict(username='Saar_Sayfan',
                          password='passwurd', )
 
-        response = self.test_app.post('/login', data=post_data)
+        response = self.test_app.post('/active_user', data=post_data)
         self.assertEqual(401, response.status_code)
         message = json.loads(response.data)['message']
         self.assertEqual('Invalid username or password', message)
@@ -149,11 +149,31 @@ class ServerTest(TestCase):
         post_data = dict(username='Saar_Sayfan',
                          password='passwurd', )
 
-        response = self.test_app.post('/login', data=post_data)
+        response = self.test_app.post('/active_user', data=post_data)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/login', data=post_data)
+        response = self.test_app.post('/active_user', data=post_data)
         self.assertEqual(400, response.status_code)
+
+    def test_user_logout_success(self):
+        self._register_test_user()
+        auth = self._login_test_user()
+
+        s = server.get_instance()
+        self.assertTrue(len(s.logged_in_users) == 1)
+        response = self.test_app.delete('/active_user', headers=auth)
+        self.assertEqual(200, response.status_code)
+        self.assertTrue(len(s.logged_in_users) == 0)
+
+    def test_user_logout_not_logged_in(self):
+        self._register_test_user()
+        auth = [('Authorization', '12343tyui876543345678976543')]
+
+        s = server.get_instance()
+        self.assertTrue(len(s.logged_in_users) == 0)
+        response = self.test_app.delete('/active_user', headers=auth)
+        self.assertEqual(401, response.status_code)
+        self.assertTrue(len(s.logged_in_users) == 0)
 
     def test_create_room_success(self):
         with self.conn:

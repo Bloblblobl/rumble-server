@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from flask_restful import Api
-from resources import User, LoggedInUser, RoomMember, RoomMembers, Room, Rooms, Message, Messages
+from resources import User, ActiveUser, RoomMember, RoomMembers, Room, Rooms, Message, Messages
 
 
 def create_app():
@@ -9,8 +9,8 @@ def create_app():
     api = Api(app)
 
     resource_map = (
-        (User, '/register'),
-        (LoggedInUser, '/login'),
+        (User, '/user'),
+        (ActiveUser, '/active_user'),
         (RoomMember, '/room_member'),
         (RoomMembers, '/room_members/<name>'),
         (Room, '/room/<name>'),

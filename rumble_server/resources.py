@@ -5,8 +5,6 @@ from server import get_instance
 
 
 class User(Resource):
-    def get(self):
-        return dict(result='OK')
     def post(self):
         parser = RequestParser()
         parser.add_argument('username', type=str, required=True)
@@ -18,7 +16,7 @@ class User(Resource):
         return dict(result='OK')
 
 
-class LoggedInUser(Resource):
+class ActiveUser(Resource):
     def post(self):
         parser = RequestParser()
         parser.add_argument('username', type=str, required=True)
@@ -28,6 +26,13 @@ class LoggedInUser(Resource):
         user_auth = server.login(**args)
         return dict(user_auth=user_auth)
 
+    def delete(self):
+        try:
+            user_auth = request.headers['Authorization']
+        except Exception as e:
+            raise
+        server = get_instance()
+        server.logout(user_auth)
 
 class RoomMember(Resource):
     def post(self):
