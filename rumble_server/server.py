@@ -29,19 +29,27 @@ class Server(object):
         self._load_all_users()
         self._load_all_rooms()
 
+    def disconnect(self):
+        self.conn.close()
+
     def _load_all_rooms(self):
         """
         :return:
         """
-        return
-
         with self.conn:
             cur = self.conn.cursor()
             cur.execute("SELECT * FROM room")
             rooms = cur.fetchall()
             for r in rooms:
-                user = User(u[1], u[2], u[3], True)
-                self.users[u[1]] = user
+                cur.execute("SELECT * FROM message WHERE room_id = {}".format(r[0]))
+                room_messages = cur.fetchall()
+                messages = {}
+                for m in room_messages:
+                    cur.execute("SELECT handle FROM user WHERE id = {}".format(m[2]))
+                    handle = cur.fetchone()[0]
+                    messages[m[3]] = (handle, m[4])
+
+                self.rooms[r[1]] = Room(r[1], {}, messages)
 
     def _load_all_users(self):
         """
@@ -119,7 +127,7 @@ class Server(object):
         handle = self.logged_in_users[user_auth].handle
         timestamp = datetime.datetime.utcnow().replace(microsecond=0)
 
-        room.messages[timestamp] = (handle, message)
+        room.messages.append((timestamp, handle, message))
 
         with self.conn:
             db = self.conn.cursor()
@@ -146,14 +154,14 @@ class Server(object):
         start = dateutil.parser.parse(start)
         end = dateutil.parser.parse(end)
 
-        return {k: v for k, v in room.messages.iteritems() if start <= k < end}
+        return [r for r in room.messages if start <= r[0] < end]
 
     def create_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name in self.rooms:
             abort(400, message='A room with this name already exists')
-        room = Room(name, {}, {})
+        room = Room(name, {}, [])
         self.rooms[name] = room
 
         with self.conn:

@@ -565,7 +565,7 @@ class ServerTest(TestCase):
         response = self.test_app.get('/messages/room0/{}/{}'.format(start, end), headers=auth)
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
-        self.assertEqual({}, result)
+        self.assertEqual([], result)
 
     def test_get_messages_one_message(self):
         auth = self._login_test_user()
@@ -593,7 +593,7 @@ class ServerTest(TestCase):
         response = self.test_app.get('/messages/room0/{}/{}'.format(start, end), headers=auth)
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
-        self.assertEqual('TEST MESSAGE', result.values()[0][1])
+        self.assertEqual('TEST MESSAGE', result[0][2])
 
     def test_get_room_members_multiple_messages(self):
         auth = self._login_test_user()
@@ -622,24 +622,24 @@ class ServerTest(TestCase):
         response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
-        self.assertEqual({}, result)
+        self.assertEqual([], result)
 
         # 1 message in range
         end = start + timedelta(seconds=1)
         response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
-        self.assertEqual('TEST MESSAGE 0', result.values()[0][1])
+        self.assertEqual('TEST MESSAGE 0', result[0][2])
 
         # all messages in range
         end = start + timedelta(seconds=4)
         response = self.test_app.get('/messages/room0/{}/{}'.format(start.isoformat(), end.isoformat()), headers=auth)
         self.assertEqual(200, response.status_code)
         result = json.loads(response.data)['result']
-        values = sorted(result.values())
-        self.assertEqual('TEST MESSAGE 0', values[0][1])
-        self.assertEqual('TEST MESSAGE 1', values[1][1])
-        self.assertEqual('TEST MESSAGE 2', values[2][1])
+        values = sorted(result)
+        self.assertEqual('TEST MESSAGE 0', values[0][2])
+        self.assertEqual('TEST MESSAGE 1', values[1][2])
+        self.assertEqual('TEST MESSAGE 2', values[2][2])
 
     def test_server_init(self):
         s = server.get_instance()
@@ -661,6 +661,8 @@ class ServerTest(TestCase):
                                           headers=auth)
             self.assertEqual(200, response.status_code)
 
+            time.sleep(1)
+
             post_data = dict(name=name, message='message2')
             response = self.test_app.post('/message/' + name,
                                           data=post_data,
@@ -677,16 +679,20 @@ class ServerTest(TestCase):
                     (2, 1, 'message2')]
         self.assertEqual(expected, messages)
 
+        server.instance.disconnect()
         server.instance = None
 
         s = server.get_instance()
         u = User('Saar_Sayfan', 'passwurd', 'Saar', True)
         expected_users = [u]
         m = (('Saar','message'),('Saar','message2'))
-        expected_rooms = {('room0', m), ('room1', m)}
+        expected_rooms = {('room0', m[0]), ('room0', m[1]), ('room1', m[0]), ('room1', m[1])}
 
         self.assertEqual(expected_users, s.users.values())
-        for r in s.rooms:
-            name = r.name
-            messages = r.messages.values()
-            self.assertIn((name, messages), expected_rooms)
+        rooms = set()
+        for r in s.rooms.values():
+            for m in r.messages.values():
+                rooms.add((r.name, m))
+
+        for r in expected_rooms:
+            self.assertIn(r, rooms)

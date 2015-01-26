@@ -88,7 +88,7 @@ class Messages(Resource):
         user_auth = request.headers['Authorization']
         server = get_instance()
         result = server.get_messages(user_auth, name, start, end)
-        result = {k.isoformat(): v for k,v in result.iteritems()}
+        result = [(r[0].isoformat(), r[1], r[2]) for r in result]
         return dict(result=result)
 
 
