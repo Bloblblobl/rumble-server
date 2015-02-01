@@ -33,17 +33,21 @@ class ActiveUser(Resource):
             raise
         server = get_instance()
         server.logout(user_auth)
+        return dict(result='OK')
+
 
 class RoomMember(Resource):
     def post(self, name):
         user_auth = request.headers['Authorization']
         server = get_instance()
         server.join_room(user_auth=user_auth, name=name)
+        return dict(result='OK')
 
     def delete(self, name):
         user_auth = request.headers['Authorization']
         server = get_instance()
         server.leave_room(user_auth=user_auth, name=name)
+        return dict(result='OK')
 
 
 class RoomMembers(Resource):
@@ -59,17 +63,21 @@ class Room(Resource):
         user_auth = request.headers['Authorization']
         server = get_instance()
         server.create_room(user_auth=user_auth, name=name)
+        return dict(result='OK')
 
     def delete(self, name):
         user_auth = request.headers['Authorization']
         server = get_instance()
         server.destroy_room(user_auth=user_auth, name=name)
+        return dict(result='OK')
+
 
 class Rooms(Resource):
     def get(self):
         user_auth = request.headers['Authorization']
         server = get_instance()
         return dict(result=server.get_rooms(user_auth=user_auth))
+
 
 class Message(Resource):
     def post(self, name):
@@ -79,6 +87,8 @@ class Message(Resource):
         message = parser.parse_args()['message']
         server = get_instance()
         server.handle_message(user_auth, name, message)
+        return dict(result='OK')
+
 
 class Messages(Resource):
     def get(self, name, start, end):
@@ -87,6 +97,7 @@ class Messages(Resource):
         result = server.get_messages(user_auth, name, start, end)
         result = [(r[0].isoformat(), r[1], r[2]) for r in result]
         return dict(result=result)
+
 
 
 
