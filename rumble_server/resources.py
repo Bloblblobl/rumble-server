@@ -35,13 +35,10 @@ class ActiveUser(Resource):
         server.logout(user_auth)
 
 class RoomMember(Resource):
-    def post(self):
-        parser = RequestParser()
-        parser.add_argument('name', type=str, required=True)
-        args = parser.parse_args()
+    def post(self, name):
+        user_auth = request.headers['Authorization']
         server = get_instance()
-        args['user_auth'] = request.headers['Authorization']
-        server.join_room(**args)
+        server.join_room(user_auth=user_auth, name=name)
 
     def delete(self, name):
         user_auth = request.headers['Authorization']

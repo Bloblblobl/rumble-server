@@ -235,34 +235,27 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
-                                      headers=auth)
+        response = self.test_app.post('/room_member/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
     def test_join_room_already_joined(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0')
 
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(400, response.status_code)
 
     def test_join_room_no_such_room(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0')
 
-        response = self.test_app.post('/room_member', data=post_data, headers=auth)
+        response = self.test_app.post('/room_member/room0', headers=auth)
         self.assertEqual(404, response.status_code)
 
     def test_join_room_unauthorized_user(self):
@@ -271,10 +264,7 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=self.bad_auth)
         self.assertEqual(401, response.status_code)
 
@@ -321,11 +311,9 @@ class ServerTest(TestCase):
 
     def test_get_room_members_one_member(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0')
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
 
@@ -342,13 +330,10 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth2)
         self.assertEqual(200, response.status_code)
 
@@ -376,12 +361,10 @@ class ServerTest(TestCase):
 
     def test_destroy_room_with_messages_success(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0')
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
 
@@ -438,13 +421,11 @@ class ServerTest(TestCase):
 
     def test_handle_message_success(self):
         auth = self._login_test_user()
-        post_data = dict(name='room0')
 
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
 
@@ -554,9 +535,7 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
         start = '2014-12-24T00:00:00'
@@ -573,9 +552,7 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
         start = datetime.now().replace(microsecond=0)
@@ -601,9 +578,7 @@ class ServerTest(TestCase):
         response = self.test_app.post('/room/room0', headers=auth)
         self.assertEqual(200, response.status_code)
 
-        post_data = dict(name='room0')
-        response = self.test_app.post('/room_member',
-                                      data=post_data,
+        response = self.test_app.post('/room_member/room0',
                                       headers=auth)
         self.assertEqual(200, response.status_code)
         start = datetime.utcnow().replace(microsecond=0)
@@ -649,9 +624,7 @@ class ServerTest(TestCase):
             response = self.test_app.post('/room/' + name, headers=auth)
             self.assertEqual(200, response.status_code)
 
-            post_data = dict(name=name)
-            response = self.test_app.post('/room_member',
-                                          data=post_data,
+            response = self.test_app.post('/room_member/{}'.format(name),
                                           headers=auth)
             self.assertEqual(200, response.status_code)
 

@@ -11,7 +11,7 @@ def create_app():
     resource_map = (
         (User, '/user'),
         (ActiveUser, '/active_user'),
-        (RoomMember, '/room_member'),
+        (RoomMember, '/room_member/<name>'),
         (RoomMembers, '/room_members/<name>'),
         (Room, '/room/<name>'),
         (Rooms, '/rooms'),
