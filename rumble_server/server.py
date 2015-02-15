@@ -196,6 +196,11 @@ class Server(object):
             abort(404, message='Room not found')
         self.rooms[name].remove_member(user_auth)
 
+    def get_users(self, user_auth):
+        if user_auth not in self.logged_in_users:
+            abort(401, message='Unauthorized user')
+        return self.logged_in_users
+
     def get_rooms(self, user_auth):
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')

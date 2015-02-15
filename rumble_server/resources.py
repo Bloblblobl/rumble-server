@@ -15,6 +15,12 @@ class User(Resource):
         server.register(**args)
         return dict(result='OK')
 
+class Users(Resource):
+    def get(self):
+        user_auth = request.headers['Authorization']
+        server = get_instance()
+        return dict(result=server.get_users(user_auth=user_auth))
+
 
 class ActiveUser(Resource):
     def post(self):
