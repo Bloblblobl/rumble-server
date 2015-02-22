@@ -1,5 +1,5 @@
 from flask import request
-from flask_restful import Resource
+from flask_restful import Resource, abort
 from flask_restful.reqparse import RequestParser
 from server import get_instance
 
@@ -17,7 +17,10 @@ class User(Resource):
 
 class Users(Resource):
     def get(self):
+        if 'Authorization' not in request.headers:
+            abort(401, message='Unauthorized user')
         user_auth = request.headers['Authorization']
+
         server = get_instance()
         return dict(result=server.get_users(user_auth=user_auth))
 

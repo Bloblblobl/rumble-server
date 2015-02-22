@@ -616,6 +616,26 @@ class ServerTest(TestCase):
         self.assertEqual('TEST MESSAGE 1', values[1][2])
         self.assertEqual('TEST MESSAGE 2', values[2][2])
 
+    def test_get_users_unauthorized_user(self):
+        auth = None
+
+        response = self.test_app.get('/users', headers=auth)
+        self.assertEqual(401, response.status_code)
+
+    def test_get_users_one_member(self):
+        auth = self._login_test_user()
+
+        response = self.test_app.get('/users', headers=auth)
+        self.assertEqual(401, response.status_code)
+
+    def test_get_users_multiple_members(self):
+        auth = self._login_test_user()
+        auth2 = self._login_test_user("a", "b", "c")
+
+        response = self.test_app.get('/users', headers=auth)
+        self.assertEqual(401, response.status_code)
+
+
     def test_server_init(self):
         s = server.get_instance()
         auth = self._login_test_user()
