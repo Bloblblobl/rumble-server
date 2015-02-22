@@ -626,14 +626,20 @@ class ServerTest(TestCase):
         auth = self._login_test_user()
 
         response = self.test_app.get('/users', headers=auth)
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(200, response.status_code)
+
+        result = json.loads(response.data)['result']
+        self.assertEqual(['Saar'], result)
 
     def test_get_users_multiple_members(self):
         auth = self._login_test_user()
         auth2 = self._login_test_user("a", "b", "c")
 
         response = self.test_app.get('/users', headers=auth)
-        self.assertEqual(401, response.status_code)
+        self.assertEqual(200, response.status_code)
+
+        result = json.loads(response.data)['result']
+        self.assertItemsEqual(['Saar', 'c'], result)
 
 
     def test_server_init(self):
