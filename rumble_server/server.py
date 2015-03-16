@@ -29,6 +29,12 @@ class Server(object):
         self._load_all_users()
         self._load_all_rooms()
 
+    def get_auth_by_user(self, user):
+        for k,v in self.logged_in_users.iteritems():
+            if v == user:
+                return k
+        return None
+
     def disconnect(self):
         self.conn.close()
 
@@ -92,8 +98,9 @@ class Server(object):
         if target_user is None or password != target_user.password:
             abort(401, message='Invalid username or password')
 
-        if target_user in self.logged_in_users.values():
-            abort(400, message='Already logged in')
+        auth = self.get_auth_by_user(target_user)
+        if auth is not None:
+            self.logout(auth)
 
         user_auth = uuid.uuid4().hex
         self.logged_in_users[user_auth] = target_user

@@ -154,8 +154,18 @@ class ServerTest(TestCase):
         response = self.test_app.post('/active_user', data=post_data)
         self.assertEqual(200, response.status_code)
 
-        response = self.test_app.post('/active_user', data=post_data)
-        self.assertEqual(400, response.status_code)
+        # Mock uuid
+        uuid4_orig = uuid.uuid4
+        try:
+            m = Mock()
+            m.hex = '12345'
+            uuid.uuid4 = lambda: m
+            response = self.test_app.post('/active_user', data=post_data)
+            self.assertEqual(200, response.status_code)
+            user_auth = json.loads(response.data)['user_auth']
+            self.assertTrue('12345', user_auth)
+        finally:
+            uuid.uuid4 = uuid4_orig
 
     def test_user_logout_success(self):
         self._register_test_user()
