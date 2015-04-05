@@ -53,7 +53,8 @@ class Server(object):
                 for m in room_messages:
                     cur.execute("SELECT handle FROM user WHERE id = {}".format(m[2]))
                     handle = cur.fetchone()[0]
-                    messages[m[3]] = (handle, m[4])
+                    timestamp = dateutil.parser.parse(m[3])
+                    messages[timestamp] = (handle, m[4])
 
                 self.rooms[r[1]] = Room(r[1], {}, messages)
 
@@ -134,7 +135,7 @@ class Server(object):
         handle = self.logged_in_users[user_auth].handle
         timestamp = datetime.datetime.utcnow().replace(microsecond=0)
 
-        room.messages.append((timestamp, handle, message))
+        room.messages[timestamp]= (handle, message)
 
         with self.conn:
             db = self.conn.cursor()
@@ -161,7 +162,7 @@ class Server(object):
         start = dateutil.parser.parse(start)
         end = dateutil.parser.parse(end)
 
-        return [r for r in room.messages if start <= r[0] < end]
+        return {k: v for k, v in room.messages.iteritems() if start <= k < end}
 
     def create_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:

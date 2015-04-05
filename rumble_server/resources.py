@@ -111,7 +111,7 @@ class Messages(Resource):
         user_auth = get_auth()
         server = get_instance()
         result = server.get_messages(user_auth, name, start, end)
-        result = [(r[0].isoformat(), r[1], r[2]) for r in result]
+        result = [(k.isoformat(), v[0], v[1]) for k, v in result.iteritems()]
         return dict(result=result)
 
 
