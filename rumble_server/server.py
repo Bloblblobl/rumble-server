@@ -169,7 +169,7 @@ class Server(object):
             abort(401, message='Unauthorized user')
         if name in self.rooms:
             abort(400, message='A room with this name already exists')
-        room = Room(name, {}, [])
+        room = Room(name, {}, {})
         self.rooms[name] = room
 
         with self.conn:
