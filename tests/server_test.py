@@ -582,7 +582,7 @@ class ServerTest(TestCase):
         result = json.loads(response.data)['result']
         self.assertEqual('TEST MESSAGE', result[0][2])
 
-    def test_get_room_members_multiple_messages(self):
+    def test_get_messages_multiple_messages(self):
         auth = self._login_test_user()
 
         response = self.test_app.post('/room/room0', headers=auth)

@@ -6,6 +6,7 @@ import dateutil.parser
 from flask_restful import abort
 from room import Room
 from user import User
+from collections import OrderedDict
 
 instance = None
 script_dir = os.path.dirname(__file__)
@@ -162,7 +163,9 @@ class Server(object):
         start = dateutil.parser.parse(start)
         end = dateutil.parser.parse(end)
 
-        return {k: v for k, v in room.messages.iteritems() if start <= k < end}
+        messages = {k: v for k, v in room.messages.iteritems() if start <= k < end}
+        messages = OrderedDict(sorted(messages.items(), key=lambda t: t[0]))
+        return messages
 
     def create_room(self, user_auth, name):
         if user_auth not in self.logged_in_users:
