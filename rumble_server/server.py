@@ -22,8 +22,9 @@ def get_instance():
 
 
 class Server(object):
-    def __init__(self):
-        self.conn = sqlite3.connect(db_file)
+    def __init__(self, db_path=None):
+        db_path = db_file if db_path is None else db_path
+        self.conn = sqlite3.connect(db_path)
         self.rooms = {}
         self.users = {}
         self.logged_in_users = {}

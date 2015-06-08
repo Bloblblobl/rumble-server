@@ -10,7 +10,6 @@ from werkzeug.datastructures import Headers
 
 from rumble_server import server
 from rumble_server.api import create_app
-from rumble_server.room import Room
 from rumble_server.user import User
 
 
@@ -682,9 +681,9 @@ class ServerTest(TestCase):
             cur = self.conn.cursor()
             cur.execute("SELECT room_id, user_id, message FROM message")
             messages = cur.fetchall()
-        expected = [(1, 1, 'message'), 
-                    (1, 1, 'message2'), 
-                    (2, 1, 'message'), 
+        expected = [(1, 1, 'message'),
+                    (1, 1, 'message2'),
+                    (2, 1, 'message'),
                     (2, 1, 'message2')]
         self.assertEqual(expected, messages)
 
@@ -694,7 +693,7 @@ class ServerTest(TestCase):
         s = server.get_instance()
         u = User('Saar_Sayfan', 'passwurd', 'Saar', True)
         expected_users = [u]
-        m = (('Saar','message'),('Saar','message2'))
+        m = (('Saar', 'message'), ('Saar', 'message2'))
         expected_rooms = {('room0', m[0]), ('room0', m[1]), ('room1', m[0]), ('room1', m[1])}
 
         self.assertEqual(expected_users, s.users.values())
