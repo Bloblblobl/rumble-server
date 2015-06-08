@@ -23,9 +23,8 @@ class ServerTest(TestCase):
         os.system(cmd)
 
         # Reset singleton every time
-        server.db_file = db_file
         server.instance = None
-        app = create_app()
+        app = create_app(db_file)
         self.conn = server.get_instance().conn
         self.test_app = app.test_client()
 

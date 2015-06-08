@@ -10,8 +10,12 @@ from collections import OrderedDict
 
 instance = None
 script_dir = os.path.dirname(__file__)
-db_file = os.path.join(os.path.join(script_dir, 'rumble.db'))
+db_path = os.path.join(os.path.join(script_dir, 'rumble.db'))
 schema_file = os.path.join(os.path.join(script_dir, 'rumble_schema.sql'))
+
+
+def get_db_path():
+    return db_path
 
 
 def get_instance():
@@ -22,9 +26,9 @@ def get_instance():
 
 
 class Server(object):
-    def __init__(self, db_path=None):
-        db_path = db_file if db_path is None else db_path
-        self.conn = sqlite3.connect(db_path)
+    def __init__(self):
+
+        self.conn = sqlite3.connect(get_db_path())
         self.rooms = {}
         self.users = {}
         self.logged_in_users = {}
