@@ -27,7 +27,6 @@ def get_instance():
 
 class Server(object):
     def __init__(self):
-
         self.conn = sqlite3.connect(get_db_path())
         self.rooms = {}
         self.users = {}
