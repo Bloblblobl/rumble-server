@@ -13,7 +13,9 @@ Will Use **Flask-Restful** and **SQLite Database**
 4. Reload the App from the Dashboard
 
 ## Local Setup
-1. Download [sqlite3](https://www.sqlite.org/download.html) and add to path
-2. Create SQLite Database called 'rumble.db' in the rumble_server directory
-3. Execute the 'rumble_schema.sql'
-4. python api.py
+- Download [sqlite3](https://www.sqlite.org/download.html) and add to path
+- Create SQLite Database called 'rumble.db' in the rumble_server directory
+- Execute the 'rumble_schema.sql'
+- pipenv --two
+- pipenv install    
+- pipenv run python api.py

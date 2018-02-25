@@ -22,4 +22,6 @@ user_id references user(id),
 timestamp TEXT,
 message TEXT);
 
+INSERT INTO room (name) VALUES ('room0');
+
 END TRANSACTION;
