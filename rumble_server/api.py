@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_restful import Api
 from resources import User, Users, ActiveUser, RoomMember, RoomMembers, Room, Rooms, Message, Messages
+from flask_cors import CORS
 
 import server
 
@@ -22,11 +23,11 @@ def main():
     the_app = create_app(db_path)
     the_app.run(host=host, port=port)
 
-
 def create_app(db_path):
     if db_path is not None:
         server.db_path = db_path
     app = Flask(__name__)
+    CORS(app)
     api = Api(app)
 
     resource_map = (

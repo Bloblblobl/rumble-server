@@ -100,6 +100,8 @@ class Server(object):
         :param password:
         :return:
         """
+        username = unicode(username)
+        password = unicode(password)
         target_user = self.users.get(username, None)
         if target_user is None or password != target_user.password:
             abort(401, message='Invalid username or password')
@@ -160,7 +162,7 @@ class Server(object):
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
-        room = self.rooms[name]
+        room = self.rooms[name] 
         if user_auth not in room.members:
             abort(401, message='Only members can receive messages')
 

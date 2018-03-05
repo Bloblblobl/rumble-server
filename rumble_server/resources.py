@@ -1,13 +1,16 @@
 from flask import request
 from flask_restful import Resource, abort
 from flask_restful.reqparse import RequestParser
+
 from server import get_instance
+
 
 def get_auth():
     user_auth = request.headers.get('Authorization', None)
     if user_auth is None:
         abort(401, message='Unauthorized user')
     return user_auth
+
 
 class User(Resource):
     def post(self):
@@ -22,6 +25,7 @@ class User(Resource):
             return dict(result='OK')
         except Exception as e:
             raise
+
 
 class Users(Resource):
     def get(self):
@@ -113,8 +117,3 @@ class Messages(Resource):
         result = server.get_messages(user_auth, name, start, end)
         result = [(k.isoformat(), v[0], v[1]) for k, v in result.iteritems()]
         return dict(result=result)
-
-
-
-
-

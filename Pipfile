@@ -12,6 +12,7 @@ flask = "*"
 python-dateutil = "*"
 httpie = "*"
 mock = "*"
+flask-cors = "*"
 
 
 [dev-packages]
