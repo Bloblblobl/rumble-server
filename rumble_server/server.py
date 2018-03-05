@@ -121,7 +121,7 @@ class Server(object):
         :param password:
         :return:
         """
-
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized User')
 
@@ -131,6 +131,7 @@ class Server(object):
         """
         :return:
         """
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
@@ -158,22 +159,26 @@ class Server(object):
             db.execute(cmd)
 
     def get_messages(self, user_auth, name, start=None, end=None):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
             abort(404, message='Room not found')
-        room = self.rooms[name] 
+        room = self.rooms[name]
         if user_auth not in room.members:
             abort(401, message='Only members can receive messages')
 
         start = dateutil.parser.parse(start)
         end = dateutil.parser.parse(end)
+        start = start.replace(tzinfo=None)
+        end = end.replace(tzinfo=None)
 
         messages = {k: v for k, v in room.messages.iteritems() if start <= k < end}
         messages = OrderedDict(sorted(messages.items(), key=lambda t: t[0]))
         return messages
 
     def create_room(self, user_auth, name):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name in self.rooms:
@@ -186,6 +191,7 @@ class Server(object):
             db.execute("INSERT INTO room (name) VALUES('{}')".format(name))
 
     def destroy_room(self, user_auth, name):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
@@ -200,6 +206,7 @@ class Server(object):
             db.execute("DELETE FROM room WHERE name = '{}'".format(name))
 
     def join_room(self, user_auth, name):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
@@ -207,6 +214,7 @@ class Server(object):
         self.rooms[name].add_member(user_auth, self.logged_in_users[user_auth])
 
     def leave_room(self, user_auth, name):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
@@ -214,17 +222,20 @@ class Server(object):
         self.rooms[name].remove_member(user_auth)
 
     def get_users(self, user_auth):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         result = [u.handle for u in self.logged_in_users.values()]
         return result
 
     def get_rooms(self, user_auth):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         return self.rooms.keys()
 
     def get_room_members(self, user_auth, name):
+        user_auth = str(user_auth)
         if user_auth not in self.logged_in_users:
             abort(401, message='Unauthorized user')
         if name not in self.rooms:
